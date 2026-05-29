@@ -1,105 +1,180 @@
-# 异环钓鱼自动化脚本
+<h1 align="center">🎣 异环钓鱼 Bot · NTEAutoFishing</h1>
 
-为单机游戏《异环》钓鱼小游戏开发的**外部自动化辅助脚本**。基于屏幕截图分析 + 键鼠模拟，**不修改任何游戏文件**。
+<p align="center">
+  为单机游戏《异环》的钓鱼小游戏打造的<b>外部自动化脚本</b><br>
+  纯屏幕截图分析 + 键鼠模拟，<b>不修改任何游戏文件、不读写游戏内存</b>
+</p>
 
-> ⚠️ 仅适用于单机版《异环》，请勿在联机/有反作弊的环境使用。
+<p align="center">
+  <img alt="platform" src="https://img.shields.io/badge/platform-Windows%2010%2F11-0078D6?logo=windows">
+  <img alt="python" src="https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white">
+  <img alt="resolution" src="https://img.shields.io/badge/分辨率-1920×1080-brightgreen">
+  <a href="https://github.com/ziczaczack/NTEAutoFishing/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/ziczaczack/NTEAutoFishing"></a>
+</p>
+
+> ⚠️ **仅适用于单机版《异环》**，请勿在联机 / 有反作弊的环境使用。本项目仅供学习与个人单机使用。
 
 ---
 
-## 环境要求
+## ✨ 特性
 
-- Windows 10 / 11
-- 游戏分辨率 **1920 × 1080**（窗口或全屏，推荐窗口模式）
-- Python 3.10+
+- **全自动循环**：抛竿 → 等上钩 → 拉鱼 → 关闭战利品 → 再抛竿，一条龙。
+- **拉鱼自动操控**：实时识别黄色指针与青色范围 bar，按 `A` / `D` 把指针稳在 bar 中心。
+- **抗背景干扰**：指针识别加了「又高又窄的竖线」形状判断，天空变色 / 太阳不会被误认成黄针。
+- **稳健的阶段切换**：用「青 bar 是否出现」判断进入拉鱼，比检测咬钩文字更可靠。
+- **战利品自适应**：拉长间隔多次点击，跨过出金鱼 2~3 秒的展示动画。
+- **开箱即用**：提供打包好的 `.exe`，无需安装 Python。
 
-## 安装
+---
+
+## 📥 快速开始（普通用户）
+
+> 不想装 Python，直接用成品：
+
+1. 前往 **[Releases](https://github.com/ziczaczack/NTEAutoFishing/releases/latest)** 下载：
+   - `NTEFishingBot.exe`
+   - `USAGE.txt`（使用说明）
+2. 把游戏分辨率设为 **1920 × 1080**（推荐窗口 / 无边框模式），进游戏走到水边。
+3. **双击 `NTEFishingBot.exe`** → 弹出 UAC 时点 **「是」**（模拟按键需要管理员权限）。
+4. 黑色窗口出现后，切回游戏：
+
+   | 按键 | 作用 |
+   |:---:|---|
+   | `F9` | 启动 / 暂停 |
+   | `F10` | 退出 |
+
+> 💡 模拟键鼠的程序常被杀毒软件误报，需在杀软中 **允许 / 信任** 后才能运行。
+
+---
+
+## 🛠️ 从源码运行（开发者）
 
 ```bash
+git clone https://github.com/ziczaczack/NTEAutoFishing.git
+cd NTEAutoFishing
 pip install -r requirements.txt
+
+python main.py        # 需以【管理员身份】打开终端，否则模拟按键无效
 ```
 
-> 提示：`keyboard` 库注册全局热键、模拟按键通常需要**以管理员身份**运行终端，否则按键可能无效。
-
-## 首次校准
-
-进入游戏钓鱼界面，让衡量 UI 显示出来，然后运行：
+打包成单文件 exe（含 UAC 管理员清单）：
 
 ```bash
-python calibration.py
+build.bat             # 等价于 pyinstaller --onefile --uac-admin ...
+# 产物：dist\NTEFishingBot.exe
 ```
 
-按提示截图、输入衡量 UI 的坐标（左 x、顶 y、宽、高），确认后会自动写回 `config.py` 的 `GAUGE_REGION`。
+---
 
-## 运行
+## 🎯 校准
+
+坐标 / 颜色按 1920×1080 已配好，**同分辨率同版本一般无需校准**。若识别不准再校准：
+
+### 1. 衡量 UI 坐标（`GAUGE_REGION`）
+
+拉鱼界面出现时按 **`Win`+`PrintScreen`** 截一张全屏图（自动存到「图片\屏幕截图」），然后：
 
 ```bash
-python main.py
+python calibration.py            # 自动读取最新截图，按提示输入 UI 的 左x/顶y/宽/高
 ```
 
-1. 启动游戏，进入钓鱼区域，站在水边
-2. 运行脚本
-3. 按 `F9` 启动 / 暂停 Bot
-4. 按 `F10` 退出
+它会从同一张图裁剪预览供你确认，确认后自动写回 `config.py`。
+
+### 2. 颜色 / 识别验证（离线，不开游戏）
+
+```bash
+python test_vision.py "你的全屏截图.png"
+```
+
+生成 `vision_debug.png`（红线=黄针 / 蓝框=青 bar / 绿线=中心）和两张 mask 图，确认识别是否准确。
 
 ---
 
-## 工作流程（状态机）
+## ⚙️ 配置参数（`config.py`）
 
-```
-IDLE → CASTING → WAITING_BITE → CONFIRMING → REELING → IDLE
-```
+<details>
+<summary>点击展开主要参数</summary>
 
-| 状态 | 说明 |
-|------|------|
-| `IDLE` | 等待开始 / 每轮间隔（`ROUND_INTERVAL`） |
-| `CASTING` | 按 `F` 抛饵 |
-| `WAITING_BITE` | 监测 `BITE_DETECT_REGION` 亮度变化等待咬钩，超时（`CAST_WAIT_MAX`）重抛 |
-| `CONFIRMING` | 延迟 `CONFIRM_DELAY` 后再按 `F` 确认中鱼 |
-| `REELING` | 以 `CONTROL_FPS` 追踪指针并移动鼠标让范围 bar 跟随，超时或 UI 消失则结束 |
+| 参数 | 默认 | 说明 |
+|---|---|---|
+| `GAUGE_REGION` | `(600,64,730,18)` | 衡量 UI 区域 `(left, top, w, h)` |
+| `POINTER_HSV_LOWER/UPPER` | 黄 `(18,40,150)~(40,200,255)` | 黄针颜色阈值 |
+| `BAR_HSV_LOWER/UPPER` | 青 `(75,100,120)~(98,255,255)` | 青 bar 颜色阈值 |
+| `POINTER_MIN_HEIGHT_FRAC` / `POINTER_MAX_WIDTH` | `0.5` / `20` | 指针形状过滤（抗天空/太阳干扰） |
+| `LEFT_KEY` / `RIGHT_KEY` | `a` / `d` | 拉鱼左移 / 右移键 |
+| `DEAD_ZONE` | `8` | 指针距中心多少像素内不动（防抖） |
+| `KEY_PRESS_GAIN` / `MIN` / `MAX` | `0.004` / `0.012` / `0.06` | 按键时长 = 偏移×GAIN，夹在 [MIN,MAX] |
+| `CONTROL_FPS` | `30` | 拉鱼控制帧率 |
+| `F_TAP_INTERVAL` | `1.0` | 等待上钩时点 F 的间隔 |
+| `MIN_BAR_WIDTH` | `40` | 判定「进入拉鱼」的青 bar 最小宽度 |
+| `LOOT_WAIT` / `CLAIM_CLICKS` / `CLAIM_CLICK_INTERVAL` | `1.5` / `3` / `1.0` | 战利品界面：等待、点击次数、间隔 |
+| `CLAIM_CLICK_POS` | `(960,540)` | 关闭战利品的点击位置 |
+| `DEBUG` | `False` | True 时用 `cv2.imshow` 实时显示 mask |
 
----
+</details>
 
-## 调参指南（`config.py`）
-
-所有可调参数集中在 `config.py`：
-
-- **找不到指针 / bar**：调整 `POINTER_HSV_LOWER/UPPER`、`BAR_HSV_LOWER/UPPER`。
-- **咬钩检测不灵 / 误判**：调整 `BITE_DETECT_REGION`、`BITE_BRIGHTNESS_THRESHOLD`，以及 `CAST_WAIT_MIN`（抛竿动画期间不检测）。
-- **bar 跟不上 / 抖动**：调整 `MOUSE_SENSITIVITY`、`DEAD_ZONE`、`CONTROL_FPS`。
-
-### 颜色校准（查看像素 HSV）
-
-```python
-import pyautogui, cv2, numpy as np
-img = pyautogui.screenshot(region=(760, 150, 400, 60))   # 改成你的 GAUGE_REGION
-bgr = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
-print(hsv[30, 200])   # (y, x) 处的 HSV 值
-```
-
-### 实时 mask 可视化
-
-把 `config.py` 里的 `DEBUG = True`，运行时会用 `cv2.imshow` 实时显示指针和 bar 的识别 mask，方便确认颜色阈值是否准确。
+**调参速查：**
+- 黄针被天空/太阳干扰 → 增大 `POINTER_MAX_WIDTH` 或检查 `POINTER_HSV`
+- 指针追不上快鱼 → 增大 `KEY_PRESS_GAIN` / `KEY_PRESS_MAX`
+- 指针来回抖 / 过冲 → 减小 `KEY_PRESS_GAIN`、增大 `DEAD_ZONE`
+- 出金动画没关掉 → 增大 `CLAIM_CLICKS`
 
 ---
 
-## 项目结构
+## 🔄 工作流程（状态机）
 
 ```
-NTEFishingScript/
-├── main.py               # 主入口，热键 + 主循环
+IDLE → CASTING → WAITING_BITE → REELING → CLAIMING → IDLE → (循环)
+```
+
+| 状态 | 行为 | 退出条件 |
+|---|---|---|
+| `IDLE` | 等待 `ROUND_INTERVAL` | 时间到 → 抛竿 |
+| `CASTING` | 按 `F` 抛竿 | 立即进入下一状态 |
+| `WAITING_BITE` | 每 `F_TAP_INTERVAL` 点一次 F，同时检测青 bar | 青 bar 出现→拉鱼；超时→重抛 |
+| `REELING` | 30fps 按 A/D 把黄针拉回 bar 中心 | 青 bar 消失 或 超时 |
+| `CLAIMING` | 点击关闭战利品界面 | 点击完毕 → IDLE |
+
+---
+
+## 🧪 测试工具
+
+| 脚本 | 用途 |
+|---|---|
+| `test_input.py` | 在记事本里验证键鼠模拟是否生效（不开游戏） |
+| `test_vision.py` | 用截图离线验证黄针 / 青 bar 识别是否准确 |
+| `test_reel.py` | 实时测试拉鱼控制：游戏内按 `F8` 开始，打印每帧 offset 与按键 |
+
+---
+
+## 📂 项目结构
+
+```
+NTEAutoFishing/
+├── main.py               # 主入口：F9/F10 热键 + 主循环
 ├── config.py             # 所有可调参数
-├── screen_reader.py      # 屏幕截图与图像分析
-├── input_controller.py   # 键盘/鼠标输入模拟
+├── screen_reader.py      # 屏幕截图与图像识别
+├── input_controller.py   # 键盘(A/D/F) + 鼠标点击模拟
 ├── state_machine.py      # 钓鱼状态机
 ├── calibration.py        # 坐标校准工具
-├── requirements.txt      # 依赖
-└── README.md
+├── test_input.py         # 输入测试
+├── test_vision.py        # 视觉识别测试
+├── test_reel.py          # 实时拉鱼控制测试
+├── build.bat             # 一键打包 exe
+├── requirements.txt
+└── PROJECT_OVERVIEW.md   # 详细设计文档
 ```
 
-## 注意事项
+---
 
-- 游戏分辨率必须为 1920×1080，其他分辨率需重新校准坐标与区域。
-- 首次使用必须运行 `calibration.py`。
-- 游戏版本更新若改变指针/bar 颜色，需重新校准 HSV 参数。
-- `MOUSE_SENSITIVITY`、`DEAD_ZONE` 等需根据实际拉鱼手感微调。
+## ❓ 常见问题
+
+- **按 F9 没反应、人物不动** → 没用管理员权限。重开终端 / exe，看到 UAC 弹窗点「是」。
+- **黄针乱跑、战利品关不掉** → 分辨率不是 1920×1080，或游戏窗口被移动过。调成 1920×1080 重开游戏。
+- **杀毒报毒** → 模拟键鼠工具的通病，需在杀软中「允许 / 信任」。
+
+---
+
+## ⚠️ 免责声明
+
+本项目仅供 **学习交流** 与 **单机游戏个人使用**。请勿用于联机 / 竞技 / 有反作弊的环境。使用本工具产生的任何后果由使用者自行承担。
